@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Attendo Pro | Master Final</title>
+    <title>Attendo Pro | Master V4</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --red: #dc2626; --gold: #facc15; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; }
@@ -42,7 +42,10 @@
             <input type="text" id="st-name" placeholder="Student Name">
             <input type="text" id="st-roll" placeholder="Roll No">
             <div style="display:flex; gap:10px;">
-                <select id="st-class"><option>Class 6</option><option>Class 8</option><option>Class 11</option><option>Class 12</option></select>
+                <select id="st-class">
+                    <option>Class 6</option><option>Class 7</option><option>Class 8</option>
+                    <option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option>
+                </select>
                 <select id="st-sec"><option>Sec A</option><option>Sec B</option></select>
             </div>
             <button onclick="addStudent()">ADD STUDENT</button>
@@ -53,7 +56,10 @@
             <h2 style="margin:0; color:var(--gold);">Attendance Desk</h2>
             <div id="teacher-tools" class="hidden">
                 <div style="display:flex; gap:10px; margin-top:15px;">
-                    <select id="sel-class" onchange="manualFetch()"><option>Class 6</option><option>Class 8</option><option>Class 11</option><option>Class 12</option></select>
+                    <select id="sel-class" onchange="manualFetch()">
+                        <option>Class 6</option><option>Class 7</option><option>Class 8</option>
+                        <option>Class 9</option><option>Class 10</option><option>Class 11</option><option>Class 12</option>
+                    </select>
                     <select id="sel-sec" onchange="manualFetch()"><option>Sec A</option><option>Sec B</option></select>
                 </div>
                 <div style="display:flex; gap:10px; margin-bottom:15px;">
@@ -68,7 +74,7 @@
     </div>
 
     <script>
-        const API = "https://script.google.com/macros/s/AKfycbwggM1VRnP_ItmtHfcYd24_QBkgRA2Pa7MvX24EaXIlyCLCC_dpUHGDbdLZzCUTvCVTTw/exec";
+        const API = "https://script.google.com/macros/s/AKfycbggM1VRnP_ItmtHfcYd24_QBkgRA2Pa7MvX24EaXIlyCLCC_dpUHGDbdLZzCUTvCVTTw/exec";
         const ADMIN = "yuvansood1234@gmail.com";
         let roster = [];
 
@@ -114,7 +120,7 @@
         }
 
         async function mark(n, r, s) {
-            toast(`${n}: ${s}`); // INSTANT FEEDBACK
+            toast(`${n}: ${s}`); // INSTANT TOAST
             const p = document.getElementById('period-sel').value;
             const c = document.getElementById('sel-class').value;
             const sec = document.getElementById('sel-sec').value;
@@ -122,14 +128,14 @@
         }
 
         async function markAllP() {
-            toast("Bulk Attendance...");
+            toast("Bulk Marking P...");
             roster.forEach(x => mark(x[0], x[1], 'Present'));
         }
 
         async function addStudent() {
             const n = document.getElementById('st-name').value;
             if(!n) return toast("Name Required!");
-            toast(`Adding ${n}...`); 
+            toast(`Adding ${n}...`);
             const r = document.getElementById('st-roll').value;
             const c = document.getElementById('st-class').value;
             const s = document.getElementById('st-sec').value;
@@ -140,7 +146,7 @@
             setTimeout(() => {
                 fetchAdminRoster();
                 manualFetch();
-            }, 1500);
+            }, 1500); // 1.5s BUFFER SYNC
         }
 
         async function fetchAdminRoster() {
@@ -148,7 +154,7 @@
             const data = await res.json();
             document.getElementById('admin-roster').innerHTML = "<h4>Admin List</h4>" + data.map(x => `
                 <div class="student-item" style="font-size:12px; padding:8px;">
-                    <span>${x[0]}</span>
+                    <span>${x[0]} (${x[2]})</span>
                     <button style="width:auto; background:var(--red); padding:4px 8px; font-size:10px;" onclick="deleteStudent('${x[0]}','${x[1]}')">DEL</button>
                 </div>`).join('');
         }
