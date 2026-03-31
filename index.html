@@ -12,10 +12,10 @@
         h1 { color: var(--gold); text-align: center; font-weight: 900; margin: 0 0 20px 0; }
         input, select, button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #0f172a; color: white; font-size: 15px; font-weight: 600; }
         button { background: var(--red); border: none; cursor: pointer; transition: 0.1s; }
-        button:active { transform: scale(0.96); }
+        button:active { transform: scale(0.95); }
         .btn-gold { background: var(--gold); color: black; }
         .hidden { display: none !important; }
-        .student-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 15px; margin-top: 8px; }
+        .student-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 15px; margin-top: 8px; border: 1px solid rgba(255,255,255,0.05); }
         .btn-p { background: var(--gold); color: black; width: 50px; height: 50px; margin: 0; border-radius: 12px; font-weight: 800; }
         .btn-a { background: var(--red); width: 50px; height: 50px; margin: 0; border-radius: 12px; font-weight: 800; }
         #toast { position: fixed; top: 20px; background: var(--gold); color: black; padding: 12px 25px; border-radius: 50px; font-weight: 800; visibility: hidden; z-index: 10000; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
@@ -46,7 +46,7 @@
                 <select id="st-sec"><option>Sec A</option><option>Sec B</option></select>
             </div>
             <button onclick="addStudent()">ADD STUDENT</button>
-            <div id="admin-roster" style="margin-top:20px; max-height: 200px; overflow-y: auto;"></div>
+            <div id="admin-roster" style="margin-top:20px; max-height: 250px; overflow-y: auto;"></div>
         </div>
 
         <div class="card">
@@ -68,7 +68,7 @@
     </div>
 
     <script>
-        const API = "https://script.google.com/macros/s/AKfycbxiZegMbyT7tkX91Mv4fvTuBpbAC_GIyp34C0mS9ktqJutqdEppVvizZA3qU-f8GkC1IA/exec";
+        const API = "https://script.google.com/macros/s/AKfycbwggM1VRnP_ItmtHfcYd24_QBkgRA2Pa7MvX24EaXIlyCLCC_dpUHGDbdLZzCUTvCVTTw/exec";
         const ADMIN = "yuvansood1234@gmail.com";
         let roster = [];
 
@@ -87,11 +87,14 @@
         async function manualFetch() {
             const c = document.getElementById('sel-class').value;
             const s = document.getElementById('sel-sec').value;
-            toast(`Syncing ${c} ${s}...`);
-            const res = await fetch(`${API}?action=getRoster`);
-            roster = await res.json();
-            roster = roster.filter(x => x[2] == c && x[3] == s);
-            renderList(roster);
+            const listDiv = document.getElementById('att-list');
+            listDiv.innerHTML = "<p style='text-align:center; color:var(--gold);'>Syncing...</p>";
+            try {
+                const res = await fetch(`${API}?action=getRoster`);
+                const data = await res.json();
+                roster = data.filter(x => x[2] == c && x[3] == s);
+                renderList(roster);
+            } catch (e) { toast("Sync Error"); }
         }
 
         function renderList(data) {
@@ -102,7 +105,7 @@
                         <button class="btn-p" onclick="mark('${x[0]}','${x[1]}','Present')">P</button>
                         <button class="btn-a" onclick="mark('${x[0]}','${x[1]}','Absent')">A</button>
                     </div>
-                </div>`).join('') || "<p style='text-align:center; opacity:0.5;'>Empty Roster</p>";
+                </div>`).join('') || "<p style='text-align:center; opacity:0.5;'>Empty Room</p>";
         }
 
         function filterList() {
@@ -111,7 +114,7 @@
         }
 
         async function mark(n, r, s) {
-            toast(`${n}: ${s}`); // Instant Feedback
+            toast(`${n}: ${s}`); // INSTANT FEEDBACK
             const p = document.getElementById('period-sel').value;
             const c = document.getElementById('sel-class').value;
             const sec = document.getElementById('sel-sec').value;
@@ -125,14 +128,19 @@
 
         async function addStudent() {
             const n = document.getElementById('st-name').value;
-            if(!n) return toast("Missing Name");
-            toast(`Adding ${n}...`); // Instant
+            if(!n) return toast("Name Required!");
+            toast(`Adding ${n}...`); 
             const r = document.getElementById('st-roll').value;
             const c = document.getElementById('st-class').value;
             const s = document.getElementById('st-sec').value;
-            document.getElementById('st-name').value = ""; document.getElementById('st-name').focus();
+            document.getElementById('st-name').value = ""; 
+            document.getElementById('st-name').focus();
             await fetch(API, {method:"POST", body:JSON.stringify({action:"addStudent", adminEmail:ADMIN, name:n, roll:r, class:c, section:s})});
-            fetchAdminRoster();
+            
+            setTimeout(() => {
+                fetchAdminRoster();
+                manualFetch();
+            }, 1500);
         }
 
         async function fetchAdminRoster() {
@@ -149,16 +157,18 @@
             if(!confirm(`Delete ${n}?`)) return;
             toast("Deleting...");
             await fetch(API, {method:"POST", body:JSON.stringify({action:"deleteStudent", adminEmail:ADMIN, name:n, roll:r})});
-            fetchAdminRoster();
-            manualFetch();
+            setTimeout(() => {
+                fetchAdminRoster();
+                manualFetch();
+            }, 1500);
         }
 
         async function login() { 
             const e=document.getElementById('l-email').value, p=document.getElementById('l-pass').value; 
-            toast("Checking Auth...");
+            toast("Verifying...");
             const r=await fetch(`${API}?action=login&email=${e}&pass=${p}`); 
             if((await r.text())==="valid") { localStorage.setItem('u_email', e.toLowerCase()); location.reload(); } 
-            else toast("Denied"); 
+            else toast("Login Denied"); 
         }
 
         async function loadReqs() { 
