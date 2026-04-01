@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Yuvan</title>
+    <title>Attendo | By Yuvan</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --red: #dc2626; --gold: #facc15; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; }
         * { box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
         .card { background: var(--card); border-radius: 24px; width: 100%; max-width: 420px; padding: 1.5rem; box-shadow: 0 20px 40px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; text-align: center; }
-        h1 { color: var(--gold); font-weight: 900; font-size: 2.2rem; margin: 0 0 1rem; letter-spacing: -2px; }
+        h1 { color: var(--gold); font-weight: 900; font-size: 2.2rem; margin: 0; letter-spacing: -2px; }
+        .credit { color: var(--gold); font-weight: 700; font-size: 11px; margin-top: -5px; letter-spacing: 1px; opacity: 0.8; text-transform: uppercase; }
         input, select, button { width: 100%; padding: 12px; margin: 6px 0; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #0f172a; color: white; font-size: 14px; font-weight: 600; }
         button { background: var(--red); border: none; cursor: pointer; transition: 0.1s; }
         button:active { transform: scale(0.96); opacity: 0.8; }
@@ -27,9 +28,12 @@
 <body onload="initApp()">
     <div id="toast">Ready</div>
 
-    <div id="auth-card" class="card">
+    <div style="text-align: center; margin-bottom: 15px;">
         <h1>ATTENDO</h1>
-        <h>A attendance made by yuvan</h>
+        <div class="credit">A ATTENDANCE SYSTEM MADE BY YUVAN</div>
+    </div>
+
+    <div id="auth-card" class="card">
         <input type="text" id="l-email" placeholder="Teacher Email">
         <input type="password" id="l-pass" placeholder="Password">
         <button onclick="login()">SIGN IN</button>
@@ -54,15 +58,10 @@
                 <select id="sel-sec" onchange="renderRoster()"><option>Sec A</option><option>Sec B</option></select>
             </div>
             <select id="period-sel">
-    <option>Period 1</option>
-    <option>Period 2</option>
-    <option>Period 3</option>
-    <option>Period 4</option>
-    <option>Period 5</option>
-    <option>Period 6</option>
-    <option>Period 7</option>
-    <option>Period 8</option>
-</select>
+                <option>Period 1</option><option>Period 2</option><option>Period 3</option>
+                <option>Period 4</option><option>Period 5</option><option>Period 6</option>
+                <option>Period 7</option><option>Period 8</option><option>Period 9</option>
+            </select>
             <div id="att-list" style="margin-top:10px;"></div>
             <button onclick="downloadReport()" style="background:#10b981; color:white; margin-top:20px;">DOWNLOAD REPORT (CSV)</button>
             <button onclick="logout()" style="background:transparent; color:var(--red); border:1px solid var(--red); margin-top:10px; padding:8px;">LOGOUT</button>
@@ -85,7 +84,7 @@
         }
 
         async function fetchRoster() {
-            toast("Syncing Roster...");
+            toast("Syncing...");
             const res = await fetch(`${API}?action=getRoster`);
             cachedRoster = await res.json();
             renderRoster();
@@ -121,7 +120,7 @@
             const r = document.getElementById('st-roll').value;
             const c = document.getElementById('sel-class').value;
             const s = document.getElementById('sel-sec').value;
-            if(!n || !r) return toast("Enter Name & Roll!");
+            if(!n || !r) return toast("Missing Info!");
             toast(`Adding ${n}...`);
             cachedRoster.push([n, r, c, s]);
             renderRoster();
@@ -130,24 +129,23 @@
         }
 
         async function deleteStudent(r) {
-            if(!confirm("Delete this student?")) return;
+            if(!confirm("Delete Student?")) return;
             const c = document.getElementById('sel-class').value;
             const s = document.getElementById('sel-sec').value;
-            toast("Removing...");
             cachedRoster = cachedRoster.filter(x => !(x[1] == r && x[2] == c && x[3] == s));
             renderRoster();
             await fetch(API, { method: "POST", body: JSON.stringify({ action: "deleteStudent", roll: r, class: c, section: s })});
         }
 
         async function downloadReport() {
-            toast("Generating CSV...");
+            toast("Downloading...");
             const res = await fetch(`${API}?action=getReport`);
             const data = await res.json();
             let csv = data.map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
             const blob = new Blob([csv], { type: 'text/csv' });
             const a = document.createElement('a');
             a.href = window.URL.createObjectURL(blob);
-            a.download = `Attendance_Master_Report.csv`;
+            a.download = `Attendance_Report.csv`;
             a.click();
         }
 
@@ -156,7 +154,7 @@
             toast("Verifying...");
             const res = await fetch(`${API}?action=login&email=${e}&pass=${p}`);
             if((await res.text()).trim() === "valid") { localStorage.setItem('u_email', e); location.reload(); }
-            else toast("Access Denied");
+            else toast("Denied");
         }
         function logout() { localStorage.clear(); location.reload(); }
     </script>
